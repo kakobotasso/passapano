@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="css/materialize.min.css">
     <link rel="stylesheet" type="text/css" href="css/index.css">
   </head>
-  <body>
+  <body class="teal">
 
     <div class="row">
         <div class="col s12 m3">
@@ -20,13 +20,90 @@
               <p>Número de panos passados hoje: 0</p>
             </div>
             <div class="card-action">
-              <a href="#">Passou um pano de novo</a>
+              <a href="#" onclick="testNotifications()">Passou um pano de novo</a>
             </div>
           </div>
         </div>
       </div>
 
+    <script src="cordova.js"></script>
     <script src="js/jquery.min.js"></script>
     <script src="js/materialize.min.js"></script>
+    <script type="text/javascript">
+    var testNotifications = function () {
+
+      document.addEventListener("deviceready", function () {
+
+        console.warn("testNotifications Started");
+
+        // Checks for permission
+        cordova.plugin.notification.local.hasPermission(function (granted) {
+
+          console.warn("Testing permission");
+
+          if( granted == false ) {
+
+            console.warn("No permission");
+            // If app doesnt have permission request it
+            cordova.plugin.notification.local.registerPermission(function (granted) {
+
+              console.warn("Ask for permission");
+              if( granted == true ) {
+
+                console.warn("Permission accepted");
+                // If app is given permission try again
+                testNotifications();
+
+              } else {
+                alert("We need permission to show you notifications");
+              }
+
+            });
+          } else {
+
+            var pathArray = window.location.pathname.split( "/www/" ),
+                secondLevelLocation = window.location.protocol +"//"+ pathArray[0],
+                now = new Date();
+
+
+            console.warn("sending notification");
+
+            var isAndroid = false;
+
+            if ( device.platform === "Android" ) {
+              isAndroid = true;
+            }
+
+            cordova.plugin.notification.local.schedule({
+                id: 9,
+                title: "Test notification 9",
+                text: "This is a test notification",
+                sound: isAndroid ? "file://sounds/notification.mp3" : "file://sounds/notification.caf",
+                at: new Date( new Date().getTime() + 10 )
+                // data: { secret:key }
+            });
+
+          }
+
+        });
+
+        }, false);
+
+      };
+      var callbackSingleOpts = function (notification) {
+          console.log(notification);
+          alert('- none -');
+      };
+
+      get = function () {
+          cordova.plugins.notification.local.get(1, callbackSingleOpts);
+      };
+
+      setDefaultTitle = function () {
+          cordova.plugins.notification.local.setDefaults({
+              title: 'Atenção! Mais um pano foi passado.'
+          });
+      };
+    </script>
   </body>
 </html>
